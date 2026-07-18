@@ -1,8 +1,10 @@
 import { buildLens } from './lensFactory.js';
+import { barrelWithLFn } from './refinedParts.js';
 
 /**
  * Nikkor Z 24-70mm f/2.8 S（教学示意模型，lensFactory 参数化生成）
  * 光轴沿 Z：卡口端 z=0，前玉朝 +Z，全长约 1.26。
+ * 精修件：镜筒左侧 L-Fn 自定义按钮。
  */
 const SPEC = {
   length: 1.26,
@@ -10,6 +12,7 @@ const SPEC = {
   kind: 'zoom',
   aperture: { rOuter: 0.3, rHole: 0.19, blades: 9 }, // f/2.8：孔径明显大于 f/4 的 24-120
   extras: { infoPanel: true },
+  overrides: { barrel: barrelWithLFn },
 };
 
 export const gear = {

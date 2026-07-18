@@ -1,9 +1,11 @@
 import { buildBody } from './bodyFactory.js';
+import { roundEyecupEvf, buttonClusterDial } from './refinedParts.js';
 
 /**
  * Nikon Z8 —— 小 Z9 高像素速度机。
  * 差异化：4571 万堆栈式 FX 传感器 + EXPEED 7；无机械快门，
  * 以传感器保护帘替代；机身明显大于 Z6 III，但无一体式竖拍手柄。
+ * 精修件：圆形橡胶目镜罩 + 左肩按键集群（无实体模式拨盘）。
  */
 const SPEC = {
   dims: [1.44, 1.19, 0.83],
@@ -15,6 +17,11 @@ const SPEC = {
     mainboard: '主板（EXPEED 7 处理器）',
     battery: '电池 EN-EL15c',
     'card-slots': '存储卡槽（CFexpress B + SD UHS-II）',
+    'mode-dial': '左肩按键集群',
+  },
+  overrides: {
+    evf: roundEyecupEvf,
+    'mode-dial': buttonClusterDial,
   },
 };
 

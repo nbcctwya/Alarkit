@@ -1,9 +1,11 @@
 import { buildBody } from './bodyFactory.js';
+import { chassisNoTopLcd } from './refinedParts.js';
 
 /**
  * Nikon Z5 II —— 入门全画幅。
  * 差异化：2450 万背照式 FX 传感器 + EXPEED 7；双 SD 卡槽（无 CFexpress）；
  * 机身与 Z7 II 相近、略厚，机械快门，无竖拍手柄。
+ * 精修件：无肩屏（入门机型没有顶部 LCD）。
  */
 const SPEC = {
   dims: [1.34, 1.01, 0.72],
@@ -15,6 +17,9 @@ const SPEC = {
     mainboard: '主板（EXPEED 7 处理器）',
     battery: '电池 EN-EL15c',
     'card-slots': '存储卡槽（双 SD UHS-II）',
+  },
+  overrides: {
+    chassis: chassisNoTopLcd,
   },
 };
 

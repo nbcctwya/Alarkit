@@ -1,9 +1,11 @@
 import { buildBody } from './bodyFactory.js';
+import { chassisNoTopLcd } from './refinedParts.js';
 
 /**
  * Nikon Z50 II —— APS-C 轻便机。
  * 差异化：DX 格式 2090 万传感器（工厂按 FX 的 2/3 缩小，IBIS 框架/快门帘同步收窄）；
  * EXPEED 7，单 SD 卡槽，机械快门，无竖拍手柄，机身最小。
+ * 精修件：无肩屏（入门机型没有顶部 LCD）。
  */
 const SPEC = {
   dims: [1.27, 0.97, 0.67],
@@ -15,6 +17,9 @@ const SPEC = {
     mainboard: '主板（EXPEED 7 处理器）',
     battery: '电池 EN-EL25a',
     'card-slots': '存储卡槽（SD UHS-II）',
+  },
+  overrides: {
+    chassis: chassisNoTopLcd,
   },
 };
 
