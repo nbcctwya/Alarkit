@@ -1,6 +1,6 @@
 # Alarkit · 相机 3D 拆解台
 
-一个以 3D 视角拆解、讲解相机的教学向 Web 应用。以 **Nikon Z6 III 机身** 搭配 **Nikkor Z 24-120mm f/4 S** 与 **Nikkor Z 85mm f/1.8 S** 两支镜头为例，可以整体查看器材组合，也可以一键"爆炸"成零件，点击任意元件了解它的用途、背后的摄影原理与实战技巧。
+一个以 3D 视角拆解、讲解相机的教学向 Web 应用。内置 **6 款 Nikon Z 系统机身**（Z6 III / Z7 II / Z5 II / Z8 / Z9 / Z50 II）与 **8 支 NIKKOR Z 镜头**（24-120 f/4 S、85 f/1.8 S、14-24 / 24-70 / 70-200 f/2.8 S、35 / 50 f/1.8 S、DX 18-140），机身与镜头可自由组合，也可以一键"爆炸"成零件，点击任意元件了解它的用途、背后的摄影原理与实战技巧。
 
 > 模型为 Three.js 几何体程序化拼装的教学示意图，非精确比例复刻。
 
@@ -30,10 +30,14 @@ Alarkit/
 │       ├── registry.js       # 器材注册表：cameras/lenses、卡口兼容判断、装配与元件 id 命名空间化
 │       ├── data.js           # 全部文案：元件介绍与器材简介
 │       └── models/
-│           ├── materials.js  # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
-│           ├── body.js       # Nikon Z6 III 机身：15 个可拆元件（导出 gear 描述符）
-│           ├── lensZoom.js   # Nikkor Z 24-120mm f/4 S：11 个可拆元件
-│           └── lensPrime.js  # Nikkor Z 85mm f/1.8 S：9 个可拆元件
+│           ├── materials.js    # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
+│           ├── body.js         # Nikon Z6 III 机身（手写精模，15 个可拆元件）
+│           ├── bodyFactory.js  # 参数化机身工厂 buildBody(spec)
+│           ├── bodyZ*.js       # Z7 II / Z5 II / Z8 / Z9 / Z50 II（参数表 + gear 描述符）
+│           ├── lensZoom.js     # Nikkor Z 24-120mm f/4 S（手写精模）
+│           ├── lensPrime.js    # Nikkor Z 85mm f/1.8 S（手写精模）
+│           ├── lensFactory.js  # 参数化镜头工厂 buildLens(spec)
+│           └── lens*.js        # 24-70 / 70-200 / 14-24 f/2.8 S、35 / 50 f/1.8 S、DX 18-140
 └── tools/
     ├── smoke.mjs             # Node 冒烟测试：遍历注册表，校验器材/元件/文案/装配与兼容性
     ├── shoot.py              # Playwright 截图 + 控制台抓取（调试）
@@ -42,7 +46,7 @@ Alarkit/
 
 **器材接口**：models 下每个器材模块导出一个 `gear` 描述符 `{ id, type, brand, name, mount, view, comboView?, create }`；`create()` 返回 `{ root, parts, mountAnchor }`。每个可拆元件是独立 `THREE.Group`，用局部 id 经 `mkPart(id, 名称, 类别, 节点, 拆解方向, 距离)` 注册；`registry.js` 在装配时把元件 id 统一命名空间化为 `器材id:局部id`（保证全局唯一），并按 `mountAnchor` 把镜头装到机身卡口（光轴统一为 +Z）。拆解动画即沿方向按滑块值插值偏移。文案查询先查 `PART_INFO[器材id:局部id]`，再回退 `PART_INFO[局部id]`，多支镜头可共用文案。
 
-**新增器材步骤**：① 在 models/ 下新建模块，按上述接口建模并导出 `gear`；② 在 `registry.js` import 并加入 `cameras` 或 `lenses`；③ 在 `data.js` 补 `GEAR_INFO[器材id]`（组合简介可选，缺省时面板自动分段显示机身与镜头简介）与元件 `PART_INFO`；④ 跑 `node tools/smoke.mjs` 校验。页面选择器会自动出现新器材，卡口（`mount`）相同的机身/镜头自动判定兼容。
+**新增器材步骤**：① 在 models/ 下新建模块并导出 `gear`——机身/镜头优先复用 `bodyFactory`/`lensFactory`（一张参数表即可，差异化零件走 spec 开关），造型特殊的再手写；② 在 `registry.js` import 并加入 `cameras` 或 `lenses`；③ 在 `data.js` 补 `GEAR_INFO[器材id]`（组合简介可选，缺省时面板自动分段显示机身与镜头简介）与元件 `PART_INFO`；④ 跑 `node tools/smoke.mjs` 校验。页面选择器会自动出现新器材，卡口（`mount`）相同的机身/镜头自动判定兼容。
 
 ## 部署运行
 

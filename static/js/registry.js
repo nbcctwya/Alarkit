@@ -1,7 +1,18 @@
 import * as THREE from 'three';
 import { gear as z6iii } from './models/body.js';
+import { gear as z7ii } from './models/bodyZ7ii.js';
+import { gear as z5ii } from './models/bodyZ5ii.js';
+import { gear as z8 } from './models/bodyZ8.js';
+import { gear as z9 } from './models/bodyZ9.js';
+import { gear as z50ii } from './models/bodyZ50ii.js';
 import { gear as z24120 } from './models/lensZoom.js';
 import { gear as z85 } from './models/lensPrime.js';
+import { gear as z2470 } from './models/lens2470.js';
+import { gear as z70200 } from './models/lens70200.js';
+import { gear as z1424 } from './models/lens1424.js';
+import { gear as z35 } from './models/lens35.js';
+import { gear as z50 } from './models/lens50.js';
+import { gear as zdx18140 } from './models/lensDx18140.js';
 
 /**
  * 器材注册表：统一登记全部机身与镜头，提供查询、卡口兼容性判断与装配。
@@ -9,8 +20,8 @@ import { gear as z85 } from './models/lensPrime.js';
  * 然后在这里 import 并登记到 cameras 或 lenses。
  */
 
-export const cameras = [z6iii];
-export const lenses = [z24120, z85];
+export const cameras = [z6iii, z7ii, z5ii, z8, z9, z50ii];
+export const lenses = [z24120, z85, z2470, z70200, z1424, z35, z50, zdx18140];
 
 const allGear = [...cameras, ...lenses];
 

@@ -93,6 +93,8 @@ if (isCompatible(z6, null) || isCompatible(null, lenses[0])) bad('null gear judg
 const combos = [
   [DEFAULT_CAMERA, DEFAULT_LENS, 26],
   [DEFAULT_CAMERA, 'nikkor-z-85-f18s', 24],
+  ['nikon-z9', 'nikkor-z-70-200-f28s', 30],
+  ['nikon-z50-ii', 'nikkor-z-dx-18-140', 27],
 ];
 for (const [c, l, expect] of combos) {
   const a = assemble(c, l);
