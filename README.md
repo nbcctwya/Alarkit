@@ -46,7 +46,7 @@ Alarkit/
 
 **器材接口**：models 下每个器材模块导出一个 `gear` 描述符 `{ id, type, brand, name, mount, view, comboView?, create }`；`create()` 返回 `{ root, parts, mountAnchor }`。每个可拆元件是独立 `THREE.Group`，用局部 id 经 `mkPart(id, 名称, 类别, 节点, 拆解方向, 距离)` 注册；`registry.js` 在装配时把元件 id 统一命名空间化为 `器材id:局部id`（保证全局唯一），并按 `mountAnchor` 把镜头装到机身卡口（光轴统一为 +Z）。拆解动画即沿方向按滑块值插值偏移。文案查询先查 `PART_INFO[器材id:局部id]`，再回退 `PART_INFO[局部id]`，多支镜头可共用文案。
 
-**新增器材步骤**：① 在 models/ 下新建模块并导出 `gear`——机身/镜头优先复用 `bodyFactory`/`lensFactory`（一张参数表即可，差异化零件走 spec 开关），造型特殊的再手写；② 在 `registry.js` import 并加入 `cameras` 或 `lenses`；③ 在 `data.js` 补 `GEAR_INFO[器材id]`（组合简介可选，缺省时面板自动分段显示机身与镜头简介）与元件 `PART_INFO`；④ 跑 `node tools/smoke.mjs` 校验。页面选择器会自动出现新器材，卡口（`mount`）相同的机身/镜头自动判定兼容。
+**新增器材步骤**：① 在 models/ 下新建模块并导出 `gear`——机身/镜头优先复用 `bodyFactory`/`lensFactory`（一张参数表即可，差异化零件走 spec 开关），个别零件可用 `spec.overrides` 手写精修（工厂会用它替代同 id 的模板零件，如 Z9 的圆形目镜罩）；② 在 `registry.js` import 并加入 `cameras` 或 `lenses`；③ 在 `data.js` 补 `GEAR_INFO[器材id]`（组合简介可选，缺省时面板自动分段显示机身与镜头简介）与元件 `PART_INFO`；④ 跑 `node tools/smoke.mjs` 校验。页面选择器会自动出现新器材，卡口（`mount`）相同的机身/镜头自动判定兼容。
 
 ## 部署运行
 

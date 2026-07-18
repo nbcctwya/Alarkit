@@ -4,6 +4,9 @@ import {
   DEFAULT_CAMERA, DEFAULT_LENS,
 } from '../static/js/registry.js';
 import { PART_INFO, GEAR_INFO } from '../static/js/data.js';
+import { buildBody } from '../static/js/models/bodyFactory.js';
+import { buildLens } from '../static/js/models/lensFactory.js';
+import { mkPart } from '../static/js/models/materials.js';
 
 let fail = 0;
 const bad = (msg) => { console.log('FAIL', msg); fail++; };
@@ -79,6 +82,29 @@ for (const g of allGear) {
   }
 }
 ok(`${partIds.size} unique part ids`);
+
+// ---------- 6.5 工厂 overrides 精修机制 ----------
+const dummyPart = (id) => mkPart(id, 'OVERRIDE-MARK', 'body',
+  new THREE.Group().add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial())),
+  new THREE.Vector3(0, 1, 0), 1);
+
+const ovBody = buildBody({
+  dims: [1.39, 1.02, 0.74], sensorFormat: 'fx', shutter: 'mechanical',
+  overrides: { evf: () => dummyPart('evf') },
+});
+const ovBodyPart = ovBody.parts.find((p) => p.id === 'evf');
+if (!ovBodyPart || ovBodyPart.name !== 'OVERRIDE-MARK') bad('bodyFactory override not applied');
+else if (ovBody.parts.length !== 15) bad(`bodyFactory override changed part count: ${ovBody.parts.length}`);
+else ok('bodyFactory overrides mechanism');
+
+const ovLens = buildLens({
+  length: 1.2, radius: 0.4, kind: 'zoom',
+  overrides: { aperture: () => dummyPart('aperture') },
+});
+const ovLensPart = ovLens.parts.find((p) => p.id === 'aperture');
+if (!ovLensPart || ovLensPart.name !== 'OVERRIDE-MARK') bad('lensFactory override not applied');
+else if (ovLens.parts.length !== 11) bad(`lensFactory override changed part count: ${ovLens.parts.length}`);
+else ok('lensFactory overrides mechanism');
 
 // ---------- 7. 卡口兼容逻辑 ----------
 const z6 = findGear(DEFAULT_CAMERA);
