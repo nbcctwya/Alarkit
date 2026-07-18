@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>相机 3D 拆解台 · Nikon Z6 III</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "{{ url_for('static', filename='vendor/three/three.module.js') }}",
+      "three/addons/": "{{ url_for('static', filename='vendor/three/addons/') }}"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header id="toolbar">
+    <div class="brand">📷 相机 3D 拆解台</div>
+    <label class="tb-item">
+      器材
+      <select id="gear-select">
+        <option value="body+zoom">Z6 III + 24-120mm f/4 S</option>
+        <option value="body+prime">Z6 III + 85mm f/1.8 S</option>
+        <option value="body">仅 Z6 III 机身</option>
+        <option value="zoom">仅 24-120mm f/4 S 镜头</option>
+        <option value="prime">仅 85mm f/1.8 S 镜头</option>
+      </select>
+    </label>
+    <label class="tb-item tb-slider">
+      拆解
+      <input type="range" id="explode-slider" min="0" max="1" step="0.01" value="0">
+    </label>
+    <button id="explode-btn" class="tb-btn">拆解</button>
+    <button id="reset-view-btn" class="tb-btn">复位视角</button>
+  </header>
+
+  <main id="layout">
+    <aside id="part-list-panel">
+      <h2>元件列表</h2>
+      <div id="part-list"></div>
+    </aside>
+
+    <section id="viewport">
+      <canvas id="scene-canvas"></canvas>
+      <div id="error-overlay" hidden>
+        <div class="error-box">
+          <h2>页面出错了</h2>
+          <pre id="error-detail"></pre>
+          <p>若提示与 WebGL 有关：请换用支持 WebGL 的浏览器（Windows 侧的 Chrome / Edge），或访问 get.webgl.org 检查浏览器。</p>
+        </div>
+      </div>
+      <div id="viewport-hint">拖动旋转 · 滚轮缩放 · 右键平移 · 双击复位 · 点击元件查看介绍</div>
+    </section>
+
+    <aside id="info-panel">
+      <h2 id="info-title">元件介绍</h2>
+      <div id="info-content"></div>
+    </aside>
+  </main>
+
+  <footer id="footnote">模型为教学示意图，非精确比例复刻 · Nikon Z6 III / Nikkor Z 24-120mm f/4 S / Nikkor Z 85mm f/1.8 S</footer>
+
+  <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

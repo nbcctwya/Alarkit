@@ -1,0 +1,250 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-border: #262b36;
+  --text: #d8dde6;
+  --text-dim: #8b93a3;
+  --accent: #f5b301;          /* 尼康黄 */
+  --accent-soft: rgba(245, 179, 1, 0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 顶部工具栏 ---------- */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
+  flex: 0 0 auto;
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.tb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+#gear-select {
+  background: #0d0f13;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+#gear-select:hover { border-color: var(--accent); }
+
+.tb-slider input[type="range"] {
+  width: 160px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.tb-btn {
+  background: #0d0f13;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tb-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tb-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- 主体三栏 ---------- */
+#layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+aside {
+  background: var(--panel);
+  overflow-y: auto;
+  flex: 0 0 250px;
+  padding: 14px;
+}
+#part-list-panel { border-right: 1px solid var(--panel-border); }
+#info-panel {
+  border-left: 1px solid var(--panel-border);
+  flex-basis: 320px;
+}
+
+aside h2 {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+/* 元件列表 */
+.part-group-title {
+  font-size: 12px;
+  color: var(--accent);
+  margin: 12px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--panel-border);
+}
+.part-group-title:first-child { margin-top: 0; }
+
+.part-item {
+  padding: 7px 10px;
+  margin: 3px 0;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+.part-item:hover { background: #1e222b; }
+.part-item.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 3D 视口 */
+#viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+#scene-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+#error-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 17, 21, 0.92);
+  z-index: 10;
+}
+#error-overlay[hidden] { display: none; }
+.error-box {
+  max-width: 520px;
+  padding: 24px 28px;
+  background: var(--panel);
+  border: 1px solid #a33;
+  border-radius: 10px;
+}
+.error-box h2 { color: #ff7b72; font-size: 16px; margin-bottom: 10px; }
+.error-box pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 12px;
+  color: var(--text);
+  background: #0d0f13;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+.error-box p { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+#viewport-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: rgba(15, 17, 21, 0.7);
+  padding: 5px 14px;
+  border-radius: 20px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 信息面板 */
+#info-content .gear-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+#info-content .gear-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+#info-content .part-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+#info-content .part-cat {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.info-section { margin-bottom: 14px; }
+.info-section h3 {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 5px;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
+}
+.info-section p {
+  font-size: 13px;
+  line-height: 1.75;
+  color: #b8bfcc;
+  text-align: justify;
+}
+
+/* 底部 */
+#footnote {
+  flex: 0 0 auto;
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--panel);
+  border-top: 1px solid var(--panel-border);
+  text-align: center;
+}
+
+/* 滚动条 */
+aside::-webkit-scrollbar { width: 8px; }
+aside::-webkit-scrollbar-thumb { background: #2a2f3a; border-radius: 4px; }
