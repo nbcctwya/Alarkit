@@ -1,15 +1,16 @@
 import * as THREE from 'three';
 import { M, mesh, box, cyl, mkPart } from './materials.js';
 
-// 机身关键位置常量（供装配镜头使用）
-export const MOUNT_Z = 0.41;   // 卡口前端面
-export const LENS_Y = -0.02;   // 光轴高度
+// 机身关键位置常量（卡口安装锚点用）
+const MOUNT_Z = 0.41;   // 卡口前端面
+const LENS_Y = -0.02;   // 光轴高度
 
 /**
  * Nikon Z6 III 机身（教学示意模型）
  * 尺寸约 1.39 × 1.02 × 0.74（1 单位 = 10 cm），前面朝 +Z，握把在 -X。
+ * 元件使用局部 id，全局命名空间由 registry 统一添加。
  */
-export function buildBody() {
+function build() {
   const root = new THREE.Group();
   const parts = [];
   const add = (p) => { root.add(p.node); parts.push(p); };
@@ -144,5 +145,20 @@ export function buildBody() {
   cards.add(mesh(box(0.11, 0.015, 0.1, M.card), -0.06, -0.08, -0.04, 0, 0, 0.2)); // SD
   add(mkPart('card-slots', '存储卡槽（CFexpress B + SD）', 'body', cards, new THREE.Vector3(-1, 0.1, 0), 0.55));
 
-  return { group: root, parts, mountZ: MOUNT_Z, lensY: LENS_Y };
+  return {
+    root,
+    parts,
+    mountAnchor: { position: new THREE.Vector3(0, LENS_Y, MOUNT_Z) }, // 卡口端面中心
+  };
 }
+
+export const gear = {
+  id: 'nikon-z6-iii',
+  type: 'camera',
+  brand: 'Nikon',
+  name: 'Nikon Z6 III',
+  mount: 'nikon-z',
+  view: { pos: [1.7, 0.9, 2.3], target: [0, 0, 0.1] },       // 仅机身
+  comboView: { pos: [2.4, 1.1, 3.4], target: [0, -0.02, 0.5] }, // 装镜头后
+  create: build,
+};

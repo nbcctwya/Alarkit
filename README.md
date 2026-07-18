@@ -6,7 +6,8 @@
 
 ## 功能特性
 
-- **器材切换**：机身+变焦 / 机身+定焦 / 仅机身 / 仅镜头，共 5 种组合
+- **器材切换**：机身与镜头独立下拉选择、自由组合（含仅机身/仅镜头），按卡口自动判断兼容性，切换不刷新页面
+- **背景主题**：深色 / 亮色（影棚渐变）/ 工作台（程序化木纹台面）三种视口背景，选择本地记忆
 - **组合 ⇄ 拆解**：滑块无级控制 + 一键动画，35 个元件沿各自方向展开（机身向后分层、镜头沿光轴向前）
 - **元件点选**：点击 3D 模型或左侧元件树，元件高亮（尼康黄）并自动聚焦视角
 - **图文讲解**：每个元件配「用途 / 摄影原理 / 实战技巧」三段中文介绍，涵盖曝光三角、景深、防抖、果冻效应、法兰距等摄影知识
@@ -20,25 +21,28 @@
 Alarkit/
 ├── app.py                    # Flask 入口（单路由渲染页面）
 ├── templates/
-│   └── index.html            # 三栏布局 + importmap
+│   └── index.html            # 三栏布局 + importmap + 机身/镜头双选择器
 ├── static/
 │   ├── css/style.css         # 深色 UI 样式
 │   ├── vendor/three/         # Three.js r160 + OrbitControls（本地化）
 │   └── js/
-│       ├── main.js           # 场景/灯光/拆解动画/拾取高亮/面板联动
+│       ├── main.js           # 场景/灯光/拆解动画/拾取高亮/面板联动/选择器（不含型号逻辑）
+│       ├── registry.js       # 器材注册表：cameras/lenses、卡口兼容判断、装配与元件 id 命名空间化
 │       ├── data.js           # 全部文案：元件介绍与器材简介
 │       └── models/
-│           ├── materials.js  # 共享材质 + 建模工具（mesh/box/cyl/mkPart）
-│           ├── body.js       # Z6 III 机身：15 个可拆元件
-│           ├── lensZoom.js   # 24-120 f/4 S：11 个可拆元件
-│           └── lensPrime.js  # 85 f/1.8 S：9 个可拆元件
+│           ├── materials.js  # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
+│           ├── body.js       # Nikon Z6 III 机身：15 个可拆元件（导出 gear 描述符）
+│           ├── lensZoom.js   # Nikkor Z 24-120mm f/4 S：11 个可拆元件
+│           └── lensPrime.js  # Nikkor Z 85mm f/1.8 S：9 个可拆元件
 └── tools/
-    ├── smoke.mjs             # Node 冒烟测试：构建模型、模拟拆解、校验文案
+    ├── smoke.mjs             # Node 冒烟测试：遍历注册表，校验器材/元件/文案/装配与兼容性
     ├── shoot.py              # Playwright 截图 + 控制台抓取（调试）
     └── webgl_probe.py        # 无头环境 WebGL 启动参数探测（调试）
 ```
 
-**建模约定**：每个可拆元件是一个独立 `THREE.Group`，经 `mkPart(id, 名称, 类别, 节点, 拆解方向, 距离)` 注册；拆解动画即沿方向按滑块值插值偏移。新增元件/器材时按此约定建模并在 `data.js` 补文案即可。镜头元件 id 带 `l-` 前缀以避免与机身冲突。
+**器材接口**：models 下每个器材模块导出一个 `gear` 描述符 `{ id, type, brand, name, mount, view, comboView?, create }`；`create()` 返回 `{ root, parts, mountAnchor }`。每个可拆元件是独立 `THREE.Group`，用局部 id 经 `mkPart(id, 名称, 类别, 节点, 拆解方向, 距离)` 注册；`registry.js` 在装配时把元件 id 统一命名空间化为 `器材id:局部id`（保证全局唯一），并按 `mountAnchor` 把镜头装到机身卡口（光轴统一为 +Z）。拆解动画即沿方向按滑块值插值偏移。文案查询先查 `PART_INFO[器材id:局部id]`，再回退 `PART_INFO[局部id]`，多支镜头可共用文案。
+
+**新增器材步骤**：① 在 models/ 下新建模块，按上述接口建模并导出 `gear`；② 在 `registry.js` import 并加入 `cameras` 或 `lenses`；③ 在 `data.js` 补 `GEAR_INFO[器材id]`（组合简介可选，缺省时面板自动分段显示机身与镜头简介）与元件 `PART_INFO`；④ 跑 `node tools/smoke.mjs` 校验。页面选择器会自动出现新器材，卡口（`mount`）相同的机身/镜头自动判定兼容。
 
 ## 部署运行
 
@@ -65,7 +69,7 @@ conda run -n webproj python app.py
 ## 开发工具
 
 ```bash
-# 冒烟测试（无需浏览器/WebGL）：构建全部模型并校验元件与文案完整性
+# 冒烟测试（无需浏览器/WebGL）：遍历注册表全部器材，校验接口、元件 id、文案、装配与卡口兼容性
 npm install three   # smoke.mjs 通过 node_modules 解析 three
 node tools/smoke.mjs
 

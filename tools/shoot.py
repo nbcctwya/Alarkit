@@ -3,7 +3,7 @@ import sys
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:5000/"
-OUT = sys.argv[2] if len(sys.argv) > 2 else "/tmp/webstar_shot.png"
+OUT = sys.argv[2] if len(sys.argv) > 2 else "/tmp/alarkit_shot.png"
 WAIT_MS = int(sys.argv[3]) if len(sys.argv) > 3 else 2500
 ACTIONS = sys.argv[4] if len(sys.argv) > 4 else ""  # 例如 "explode" 或 "select:sensor"
 

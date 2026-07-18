@@ -4,16 +4,12 @@ import { M, mesh, box, cyl, mkPart, lensElement, apertureUnit } from './material
 /**
  * Nikkor Z 24-120mm f/4 S（教学示意模型）
  * 光轴沿 Z：卡口端 z=0，前玉朝 +Z，全长约 1.18。
+ * 元件使用局部 id，全局命名空间由 registry 统一添加。
  */
-export function buildZoomLens() {
+function build() {
   const root = new THREE.Group();
   const parts = [];
-  // 镜头元件 id 加 l- 前缀，避免与机身元件（如 mount）冲突
-  const add = (p) => {
-    p.id = 'l-' + p.id;
-    p.node.traverse((o) => { o.userData.partId = p.id; });
-    root.add(p.node); parts.push(p);
-  };
+  const add = (p) => { root.add(p.node); parts.push(p); };
   const elem = (r, t, mat) => { const e = lensElement(r, t, mat); e.rotation.x = Math.PI / 2; return e; };
 
   // ---------- 镜筒（基准，不拆解） ----------
@@ -94,5 +90,19 @@ export function buildZoomLens() {
   front.add(elem(0.36, 0.045, M.glassFront));
   add(mkPart('front-element', '前镜片（前玉）', 'lens', front, new THREE.Vector3(0, 0, 1), 2.2));
 
-  return { group: root, parts, length: 1.18 };
+  return {
+    root,
+    parts,
+    mountAnchor: { position: new THREE.Vector3(0, 0, 0) }, // 后卡口端面中心（局部原点）
+  };
 }
+
+export const gear = {
+  id: 'nikkor-z-24-120-f4s',
+  type: 'lens',
+  brand: 'Nikon',
+  name: 'NIKKOR Z 24-120mm f/4 S',
+  mount: 'nikon-z',
+  view: { pos: [1.5, 0.7, 2.6], target: [0, 0, 0.6] },
+  create: build,
+};

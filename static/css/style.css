@@ -52,7 +52,7 @@ body {
   white-space: nowrap;
 }
 
-#gear-select {
+.tb-select {
   background: #0d0f13;
   color: var(--text);
   border: 1px solid var(--panel-border);
@@ -61,8 +61,10 @@ body {
   font-size: 13px;
   outline: none;
   cursor: pointer;
+  max-width: 220px;
 }
-#gear-select:hover { border-color: var(--accent); }
+.tb-select:hover { border-color: var(--accent); }
+.tb-select option:disabled { color: #555c68; }
 
 .tb-slider input[type="range"] {
   width: 160px;

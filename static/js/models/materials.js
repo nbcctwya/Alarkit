@@ -93,3 +93,14 @@ export function apertureUnit(rOuter, rHole, blades = 9) {
   }
   return g; // 默认位于 XY 平面，面向 ±Z
 }
+
+/** 释放一棵对象树占用的几何体与材质（mkPart 已为每个 mesh 克隆材质，实例间无共享） */
+export function disposeTree(root) {
+  root.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) {
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of mats) m.dispose();
+    }
+  });
+}

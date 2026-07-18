@@ -18,13 +18,19 @@
   <header id="toolbar">
     <div class="brand">📷 相机 3D 拆解台</div>
     <label class="tb-item">
-      器材
-      <select id="gear-select">
-        <option value="body+zoom">Z6 III + 24-120mm f/4 S</option>
-        <option value="body+prime">Z6 III + 85mm f/1.8 S</option>
-        <option value="body">仅 Z6 III 机身</option>
-        <option value="zoom">仅 24-120mm f/4 S 镜头</option>
-        <option value="prime">仅 85mm f/1.8 S 镜头</option>
+      机身
+      <select id="camera-select" class="tb-select"></select>
+    </label>
+    <label class="tb-item">
+      镜头
+      <select id="lens-select" class="tb-select"></select>
+    </label>
+    <label class="tb-item">
+      背景
+      <select id="bg-select" class="tb-select">
+        <option value="dark">深色</option>
+        <option value="light">亮色</option>
+        <option value="workbench">工作台</option>
       </select>
     </label>
     <label class="tb-item tb-slider">

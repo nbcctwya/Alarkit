@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { buildBody } from './models/body.js';
-import { buildZoomLens } from './models/lensZoom.js';
-import { buildPrimeLens } from './models/lensPrime.js';
+import {
+  cameras, lenses, findGear, assemble, isCompatible,
+  DEFAULT_CAMERA, DEFAULT_LENS,
+} from './registry.js';
+import { disposeTree } from './models/materials.js';
 import { PART_INFO, GEAR_INFO } from './data.js';
 
 // ---------- 渲染器 / 场景 / 相机 ----------
@@ -49,9 +51,113 @@ fillLight.position.set(0, -1, 2);
 scene.add(fillLight);
 
 // ---------- 地面网格 ----------
-const grid = new THREE.GridHelper(8, 40, 0x2b303c, 0x1b1f27);
-grid.position.y = -1.2; // 低于拆解后的电池位置，仅作空间参考
-scene.add(grid);
+let grid = null;
+function buildGrid(c1, c2) {
+  const g = new THREE.GridHelper(8, 40, c1, c2);
+  g.position.y = -1.2; // 低于拆解后的电池位置，仅作空间参考
+  return g;
+}
+
+// ---------- 背景主题（深色 / 亮色 / 工作台） ----------
+// 纹理全部 Canvas 程序化生成，保持零贴图文件、离线可用
+function gradientTexture(top, bottom) {
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 256;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, top);
+  grad.addColorStop(1, bottom);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 16, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function woodTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#6d5138'; // 胡桃木底色
+  ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 90; i++) { // 木纹：多层半透明横向笔触
+    const y = Math.random() * 512;
+    const h = 1 + Math.random() * 3;
+    ctx.fillStyle = Math.random() < 0.5
+      ? `rgba(58, 40, 26, ${0.05 + Math.random() * 0.12})`
+      : `rgba(146, 112, 76, ${0.04 + Math.random() * 0.10})`;
+    ctx.fillRect(0, y, 512, h);
+  }
+  ctx.fillStyle = 'rgba(30, 20, 12, 0.5)'; // 板缝
+  for (let x = 0; x <= 512; x += 128) ctx.fillRect(x, 0, 2, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// 工作台台面（仅 workbench 主题显示）
+const bench = new THREE.Group();
+const benchTop = new THREE.Mesh(
+  new THREE.BoxGeometry(8, 0.08, 8),
+  new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05 })
+);
+benchTop.position.y = -1.24; // 顶面约 -1.2，与原网格同高
+bench.add(benchTop);
+bench.visible = false;
+scene.add(bench);
+
+const BG_THEMES = {
+  dark: {
+    bg: () => new THREE.Color(0x0f1115),
+    fog: 0x0f1115,
+    grid: [0x2b303c, 0x1b1f27],
+    bench: false,
+  },
+  light: {
+    bg: () => gradientTexture('#f7f8fa', '#dcdfe5'),
+    fog: 0xe8ebef,
+    grid: [0xb8bec8, 0xd4d8e0],
+    bench: false,
+  },
+  workbench: {
+    bg: () => gradientTexture('#2e2822', '#171310'),
+    fog: 0x211c17,
+    grid: null, // 木纹台面本身提供尺度感，隐藏网格
+    bench: true,
+  },
+};
+const bgTexCache = {};
+
+function applyTheme(key) {
+  const t = BG_THEMES[key] || BG_THEMES.dark;
+  // 背景纹理首次使用时生成并缓存
+  scene.background = bgTexCache[key] || (bgTexCache[key] = t.bg());
+  scene.fog.color.set(t.fog);
+  // GridHelper 颜色烘焙在顶点中，换色即重建（开销可忽略）
+  if (grid) {
+    scene.remove(grid);
+    grid.geometry.dispose();
+    grid.material.dispose();
+    grid = null;
+  }
+  if (t.grid) {
+    grid = buildGrid(t.grid[0], t.grid[1]);
+    scene.add(grid);
+  }
+  if (t.bench && !benchTop.material.map) {
+    benchTop.material.map = woodTexture();
+    benchTop.material.needsUpdate = true;
+  }
+  bench.visible = t.bench;
+  try { localStorage.setItem('bg-theme', key in BG_THEMES ? key : 'dark'); } catch (_) { /* 隐私模式等场景忽略 */ }
+  bgSelect.value = key in BG_THEMES ? key : 'dark';
+}
+
+const bgSelect = document.getElementById('bg-select');
+bgSelect.addEventListener('change', () => applyTheme(bgSelect.value));
+applyTheme((() => { try { return localStorage.getItem('bg-theme') || 'dark'; } catch (_) { return 'dark'; } })());
 
 // ---------- 控制器 ----------
 const controls = new OrbitControls(camera, canvas);
@@ -60,65 +166,103 @@ controls.dampingFactor = 0.08;
 controls.minDistance = 0.4;
 controls.maxDistance = 8;
 
-// ---------- 模型装配 ----------
-const models = {
-  body: buildBody(),
-  zoom: buildZoomLens(),
-  prime: buildPrimeLens(),
-};
-
-let gearGroup = null;      // 当前器材组合
-let parts = [];            // 当前可拆解元件
-let currentGear = '';
+// ---------- 器材装配 ----------
+let gearGroup = null;      // 当前器材组合（机身 + 镜头）
+let parts = [];            // 当前活动元件
+let cameraInst = null;     // 当前机身实例
+let lensInst = null;       // 当前镜头实例
 let explodeTarget = 0;     // 拆解目标值 0..1
 let explodeCurrent = 0;    // 平滑插值
 let selectedPart = null;   // 当前选中元件
 let focusTarget = null;    // 视角聚焦目标点
 let homeView = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
 
-const GEAR_VIEWS = {
-  'body+zoom': { pos: [2.4, 1.1, 3.4], target: [0, -0.02, 0.5] },
-  'body+prime': { pos: [2.2, 1.0, 3.0], target: [0, -0.02, 0.4] },
-  'body': { pos: [1.7, 0.9, 2.3], target: [0, 0, 0.1] },
-  'zoom': { pos: [1.5, 0.7, 2.6], target: [0, 0, 0.6] },
-  'prime': { pos: [1.4, 0.6, 2.3], target: [0, 0, 0.5] },
-};
+const DEFAULT_VIEW = { pos: [2.4, 1.1, 3.4], target: [0, 0, 0.5] };
 
-function setGear(key) {
-  if (gearGroup) scene.remove(gearGroup);
-  gearGroup = new THREE.Group();
-  parts = [];
+// 当前组合应使用的视角：组合态用机身的 comboView，单器材用各自的 view
+function currentView() {
+  if (cameraInst && lensInst) return cameraInst.gear.comboView || cameraInst.gear.view || DEFAULT_VIEW;
+  if (cameraInst) return cameraInst.gear.view || DEFAULT_VIEW;
+  if (lensInst) return lensInst.gear.view || DEFAULT_VIEW;
+  return DEFAULT_VIEW;
+}
+
+/**
+ * 重建当前组合：移除旧器材并释放资源 → 装配新组合 → 重置拆解与选中 →
+ * 重建元件列表与讲解面板 → 适配视角。视角/定位数据全部来自器材描述符。
+ */
+function rebuild(cameraId, lensId) {
+  if (gearGroup) {
+    scene.remove(gearGroup);
+    disposeTree(gearGroup);
+  }
   clearSelection();
 
-  const withBody = key.includes('body');
-  const lensKey = key.includes('zoom') ? 'zoom' : (key.includes('prime') ? 'prime' : null);
-
-  if (withBody) {
-    gearGroup.add(models.body.group);
-    parts.push(...models.body.parts);
-  }
-  if (lensKey) {
-    const lens = models[lensKey];
-    if (withBody) {
-      lens.group.position.set(0, models.body.lensY, models.body.mountZ);
-    } else {
-      lens.group.position.set(0, 0, 0);
-    }
-    gearGroup.add(lens.group);
-    parts.push(...lens.parts);
-  }
-
+  const a = assemble(cameraId || null, lensId || null);
+  gearGroup = a.group;
+  parts = a.parts;
+  cameraInst = a.camera;
+  lensInst = a.lens;
   scene.add(gearGroup);
-  currentGear = key;
-  applyExplode(explodeCurrent); // 保持当前拆解状态
 
-  const v = GEAR_VIEWS[key];
+  // 切换组合后重置拆解进度
+  explodeTarget = explodeCurrent = 0;
+  slider.value = 0;
+  syncExplodeBtn();
+
+  const v = currentView();
   homeView.pos.set(...v.pos);
   homeView.target.set(...v.target);
   resetView();
   buildPartList();
   renderGearInfo();
 }
+
+// ---------- 器材选择器 ----------
+const cameraSelect = document.getElementById('camera-select');
+const lensSelect = document.getElementById('lens-select');
+
+function fillSelect(sel, entries, noneLabel) {
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = noneLabel;
+  sel.appendChild(none);
+  for (const g of entries) {
+    const opt = document.createElement('option');
+    opt.value = g.id;
+    opt.textContent = g.name;
+    sel.appendChild(opt);
+  }
+}
+
+// 按当前机身禁用卡口不兼容的镜头选项
+function refreshLensCompatibility() {
+  const cam = cameraInst ? cameraInst.gear : null;
+  for (const opt of lensSelect.options) {
+    if (!opt.value) continue;
+    const lens = findGear(opt.value);
+    const ok = !cam || isCompatible(cam, lens);
+    opt.disabled = !ok;
+    opt.title = ok ? '' : `卡口不兼容：${cam.mount} × ${lens.mount}`;
+  }
+}
+
+cameraSelect.addEventListener('change', () => {
+  let lensId = lensSelect.value;
+  const cam = findGear(cameraSelect.value);
+  const lens = findGear(lensId);
+  // 当前镜头与新机身不兼容时自动卸下
+  if (cam && lens && !isCompatible(cam, lens)) {
+    lensId = '';
+    lensSelect.value = '';
+  }
+  rebuild(cameraSelect.value, lensId);
+  refreshLensCompatibility();
+});
+
+lensSelect.addEventListener('change', () => {
+  rebuild(cameraSelect.value, lensSelect.value);
+});
 
 // ---------- 拆解 ----------
 function applyExplode(f) {
@@ -199,7 +343,7 @@ let downPos = null;
 
 canvas.addEventListener('pointerdown', (e) => { downPos = [e.clientX, e.clientY]; });
 canvas.addEventListener('pointerup', (e) => {
-  if (!downPos) return;
+  if (!downPos || !gearGroup) return;
   const dx = e.clientX - downPos[0], dy = e.clientY - downPos[1];
   downPos = null;
   if (dx * dx + dy * dy > 25) return; // 拖拽不算点击
@@ -226,15 +370,16 @@ function buildPartList() {
   const box = document.getElementById('part-list');
   box.innerHTML = '';
   const groups = [
-    { cat: 'body', title: '机身 · Nikon Z6 III' },
-    { cat: 'lens', title: currentGear.includes('prime') ? '镜头 · Z 85mm f/1.8 S' : '镜头 · Z 24-120mm f/4 S' },
+    { inst: cameraInst, cat: 'body', label: '机身' },
+    { inst: lensInst, cat: 'lens', label: '镜头' },
   ];
   for (const g of groups) {
+    if (!g.inst) continue;
     const list = parts.filter((p) => p.cat === g.cat);
     if (!list.length) continue;
     const h = document.createElement('div');
     h.className = 'part-group-title';
-    h.textContent = g.title;
+    h.textContent = `${g.label} · ${g.inst.gear.name}`;
     box.appendChild(h);
     for (const p of list) {
       const item = document.createElement('div');
@@ -252,20 +397,34 @@ function infoHtml() {
   return document.getElementById('info-content');
 }
 
-function renderGearInfo() {
-  const g = GEAR_INFO[currentGear];
-  document.getElementById('info-title').textContent = '器材简介';
-  infoHtml().innerHTML = `
+function gearInfoHtml(g) {
+  return `
     <div class="gear-name">${g.name}</div>
     <div class="gear-sub">${g.sub}</div>
     <div class="info-section"><p>${g.desc}</p></div>`;
 }
 
+function renderGearInfo() {
+  document.getElementById('info-title').textContent = '器材简介';
+  const camId = cameraInst ? cameraInst.gear.id : null;
+  const lensId = lensInst ? lensInst.gear.id : null;
+  // 优先组合文案；没有组合文案时分别展示机身与镜头简介
+  const combo = camId && lensId ? GEAR_INFO[`${camId}+${lensId}`] : null;
+  if (combo) {
+    infoHtml().innerHTML = gearInfoHtml(combo);
+    return;
+  }
+  const sections = [camId, lensId].filter(Boolean).map((id) => GEAR_INFO[id]).filter(Boolean);
+  infoHtml().innerHTML = sections.length
+    ? sections.map(gearInfoHtml).join('')
+    : '<div class="info-section"><p>请选择机身或镜头开始查看。</p></div>';
+}
+
 function renderPartInfo(id) {
-  const lensKey = currentGear.includes('prime') ? 'prime'
-    : currentGear.includes('zoom') ? 'zoom' : null;
-  const key = id.startsWith('l-') ? id.slice(2) : id; // 镜头元件去掉 l- 前缀查文案
-  const info = (lensKey && PART_INFO[`${lensKey}:${key}`]) || PART_INFO[key];
+  const part = parts.find((p) => p.id === id);
+  if (!part) return;
+  // 文案查询：先器材专属键（器材id:元件id），再共用键（元件局部 id）
+  const info = PART_INFO[part.id] || PART_INFO[part.localId];
   if (!info) return;
   document.getElementById('info-title').textContent = '元件介绍';
   infoHtml().innerHTML = `
@@ -285,7 +444,6 @@ function resetView() {
 
 document.getElementById('reset-view-btn').addEventListener('click', resetView);
 canvas.addEventListener('dblclick', resetView);
-document.getElementById('gear-select').addEventListener('change', (e) => setGear(e.target.value));
 
 // ---------- 尺寸自适应 ----------
 function resize() {
@@ -313,5 +471,11 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-setGear('body+zoom');
+// ---------- 初始组合 ----------
+fillSelect(cameraSelect, cameras, '无机身');
+fillSelect(lensSelect, lenses, '不装镜头');
+cameraSelect.value = DEFAULT_CAMERA;
+lensSelect.value = DEFAULT_LENS;
+rebuild(DEFAULT_CAMERA, DEFAULT_LENS);
+refreshLensCompatibility();
 animate();

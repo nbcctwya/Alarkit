@@ -4,16 +4,12 @@ import { M, mesh, box, cyl, mkPart, lensElement, apertureUnit } from './material
 /**
  * Nikkor Z 85mm f/1.8 S（教学示意模型）
  * 光轴沿 Z：卡口端 z=0，前玉朝 +Z，全长约 0.99。
+ * 元件使用局部 id，全局命名空间由 registry 统一添加。
  */
-export function buildPrimeLens() {
+function build() {
   const root = new THREE.Group();
   const parts = [];
-  // 镜头元件 id 加 l- 前缀，避免与机身元件（如 mount）冲突
-  const add = (p) => {
-    p.id = 'l-' + p.id;
-    p.node.traverse((o) => { o.userData.partId = p.id; });
-    root.add(p.node); parts.push(p);
-  };
+  const add = (p) => { root.add(p.node); parts.push(p); };
   const elem = (r, t, mat) => { const e = lensElement(r, t, mat); e.rotation.x = Math.PI / 2; return e; };
 
   // ---------- 镜筒 ----------
@@ -81,5 +77,19 @@ export function buildPrimeLens() {
   front.add(elem(0.34, 0.05, M.glassFront));
   add(mkPart('front-element', '前镜片（前玉）', 'lens', front, new THREE.Vector3(0, 0, 1), 1.9));
 
-  return { group: root, parts, length: 0.99 };
+  return {
+    root,
+    parts,
+    mountAnchor: { position: new THREE.Vector3(0, 0, 0) }, // 后卡口端面中心（局部原点）
+  };
 }
+
+export const gear = {
+  id: 'nikkor-z-85-f18s',
+  type: 'lens',
+  brand: 'Nikon',
+  name: 'NIKKOR Z 85mm f/1.8 S',
+  mount: 'nikon-z',
+  view: { pos: [1.4, 0.6, 2.3], target: [0, 0, 0.5] },
+  create: build,
+};
