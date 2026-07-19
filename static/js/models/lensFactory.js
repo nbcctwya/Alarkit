@@ -203,7 +203,7 @@ const TEMPLATE = {
 
 /**
  * 镜头参数化工厂：按 spec 生成教学示意镜头模型。
- * 坐标约定与 lensZoom.js 一致：光轴沿 +Z，卡口端 z=0，前玉朝 +Z。
+ * 坐标约定与 lensNikon24120.js 一致：光轴沿 +Z，卡口端 z=0，前玉朝 +Z。
  *
  * spec = {
  *   length   全长（卡口面到前玉）
@@ -225,7 +225,7 @@ export function buildLens(spec) {
   const kind = spec.kind === 'prime' ? 'prime' : 'zoom';
   const ex = spec.extras || {};
   const ap = spec.aperture || { rOuter: R * 0.72, rHole: R * 0.45, blades: 9 };
-  // 拆解距离：基准件 0，其余沿 +Z 递增（量级对齐 lensZoom.js / lensPrime.js）
+  // 拆解距离：基准件 0，其余沿 +Z 递增（量级对齐 lensNikon24120.js / lensNikon85.js）
   const D = kind === 'zoom'
     ? { ctrl: 0.45, motor: 0.72, focus: 0.95, ap: 1.2, frontGrp: 1.9, front: 2.2 }
     : { ctrl: 0.4, motor: 0.65, focus: 0.9, ap: 1.1, frontGrp: 1.6, front: 1.9 };

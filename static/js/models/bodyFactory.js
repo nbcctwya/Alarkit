@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { M, mesh, box, cyl, mkPart } from './materials.js';
 
 // 参考机身（Nikon Z6 III）外形尺寸：所有特征相对它逐轴等比缩放，
-// dims 取参考值时造型与 body.js 完全一致。
+// dims 取参考值时造型与 bodyNikonZ6iii.js 完全一致。
 const REF_W = 1.39, REF_H = 1.02, REF_D = 0.74;
-const LENS_Y = -0.02;   // 光轴高度（与 body.js 一致）
+const LENS_Y = -0.02;   // 光轴高度（与 bodyNikonZ6iii.js 一致）
 
 // 默认元件名称，可由 spec.labels 逐项覆盖（各机型差异化文案）
 const DEFAULT_LABELS = {
@@ -253,7 +253,7 @@ const TEMPLATE = {
 
 /**
  * 参数化无反机身工厂（教学示意模型）。
- * 坐标约定与 body.js 一致：前面朝 +Z，握把在 -X，1 单位 = 10 cm。
+ * 坐标约定与 bodyNikonZ6iii.js 一致：前面朝 +Z，握把在 -X，1 单位 = 10 cm。
  *
  * spec = {
  *   dims: [w, h, d],                   // 机身外形尺寸

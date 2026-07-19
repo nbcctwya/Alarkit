@@ -31,14 +31,14 @@ Alarkit/
 │       ├── data.js           # 全部文案：元件介绍与器材简介
 │       └── models/
 │           ├── materials.js        # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
-│           ├── body.js             # Nikon Z6 III 机身（手写精模，15 个可拆元件）
-│           ├── bodyFactory.js      # 参数化机身工厂 buildBody(spec)，支持 overrides 精修
-│           ├── bodyZ*.js           # Nikon Z7 II / Z5 II / Z8 / Z9 / Z50 II
+│           ├── bodyNikonZ6iii.js     # Nikon Z6 III 机身（手写精模，15 个可拆元件）
+│           ├── bodyFactory.js        # 参数化机身工厂 buildBody(spec)，支持 overrides 精修
+│           ├── bodyNikon*.js         # 其余 5 款 Nikon 机身（Z5 II / Z7 II / Z8 / Z9 / Z50 II）
 │           ├── body{Sony,Fuji,Canon,Leica,Hasselblad,Lumix}*.js  # 其余 6 品牌机身
-│           ├── lensZoom.js         # Nikkor Z 24-120mm f/4 S（手写精模）
-│           ├── lensPrime.js        # Nikkor Z 85mm f/1.8 S（手写精模）
-│           ├── lensFactory.js      # 参数化镜头工厂 buildLens(spec)，支持 labels/overrides
-│           ├── lens*.js            # 8 支 Nikkor 镜头
+│           ├── lensNikon24120.js     # Nikkor Z 24-120mm f/4 S（手写精模）
+│           ├── lensNikon85.js        # Nikkor Z 85mm f/1.8 S（手写精模）
+│           ├── lensFactory.js        # 参数化镜头工厂 buildLens(spec)，支持 labels/overrides
+│           ├── lensNikon*.js         # 其余 6 支 Nikkor 镜头（24-70 / 70-200 / 14-24 / 35 / 50 / DX 18-140）
 │           ├── lens{Sony,Fuji,Canon,Leica,Hasselblad,Lumix}*.js  # 其余 6 品牌镜头
 │           ├── refinedParts.js     # 共享精修件库（机身）
 │           └── refinedLensParts.js # 共享精修件库（镜头）
