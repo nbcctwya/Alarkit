@@ -5,6 +5,12 @@ import { gear as z5ii } from './models/bodyZ5ii.js';
 import { gear as z8 } from './models/bodyZ8.js';
 import { gear as z9 } from './models/bodyZ9.js';
 import { gear as z50ii } from './models/bodyZ50ii.js';
+import { gear as a7c2 } from './models/bodySonyA7c2.js';
+import { gear as xt5 } from './models/bodyFujiXt5.js';
+import { gear as r5 } from './models/bodyCanonR5.js';
+import { gear as m11 } from './models/bodyLeicaM11.js';
+import { gear as x2d } from './models/bodyHasselbladX2d.js';
+import { gear as s5ii } from './models/bodyLumixS5ii.js';
 import { gear as z24120 } from './models/lensZoom.js';
 import { gear as z85 } from './models/lensPrime.js';
 import { gear as z2470 } from './models/lens2470.js';
@@ -13,6 +19,12 @@ import { gear as z1424 } from './models/lens1424.js';
 import { gear as z35 } from './models/lens35.js';
 import { gear as z50 } from './models/lens50.js';
 import { gear as zdx18140 } from './models/lensDx18140.js';
+import { gear as sony35gm } from './models/lensSony35gm.js';
+import { gear as fuji35 } from './models/lensFuji35.js';
+import { gear as canon50 } from './models/lensCanon50.js';
+import { gear as leica35 } from './models/lensLeica35.js';
+import { gear as hassel55 } from './models/lensHasselblad55.js';
+import { gear as lumix24105 } from './models/lensLumix24105.js';
 
 /**
  * 器材注册表：统一登记全部机身与镜头，提供查询、卡口兼容性判断与装配。
@@ -20,10 +32,13 @@ import { gear as zdx18140 } from './models/lensDx18140.js';
  * 然后在这里 import 并登记到 cameras 或 lenses。
  */
 
-export const cameras = [z6iii, z7ii, z5ii, z8, z9, z50ii];
-export const lenses = [z24120, z85, z2470, z70200, z1424, z35, z50, zdx18140];
+export const cameras = [z6iii, z7ii, z5ii, z8, z9, z50ii, a7c2, xt5, r5, m11, x2d, s5ii];
+export const lenses = [z24120, z85, z2470, z70200, z1424, z35, z50, zdx18140, sony35gm, fuji35, canon50, leica35, hassel55, lumix24105];
 
 const allGear = [...cameras, ...lenses];
+
+// 品牌列表（按登记顺序，Nikon 在前）
+export const brands = [...new Set(allGear.map((g) => g.brand))];
 
 // 页面初始组合
 export const DEFAULT_CAMERA = 'nikon-z6-iii';

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
-  cameras, lenses, findGear, assemble, isCompatible,
+  cameras, lenses, brands, findGear, assemble, isCompatible,
   DEFAULT_CAMERA, DEFAULT_LENS,
 } from './registry.js';
 import { disposeTree } from './models/materials.js';
@@ -219,6 +219,7 @@ function rebuild(cameraId, lensId) {
 }
 
 // ---------- 器材选择器 ----------
+const brandSelect = document.getElementById('brand-select');
 const cameraSelect = document.getElementById('camera-select');
 const lensSelect = document.getElementById('lens-select');
 
@@ -234,6 +235,45 @@ function fillSelect(sel, entries, noneLabel) {
     sel.appendChild(opt);
   }
 }
+
+// 品牌选择器（首项「全部品牌」，值为 ''）
+function fillBrandSelect() {
+  fillSelect(brandSelect, brands.map((b) => ({ id: b, name: b })), '全部品牌');
+}
+
+// 按品牌重填机身/镜头选项（'' = 全部）；原选择在过滤后仍存在则保留
+function refillGearSelects(brand) {
+  const camList = brand ? cameras.filter((c) => c.brand === brand) : cameras;
+  const lensList = brand ? lenses.filter((l) => l.brand === brand) : lenses;
+  const curCam = cameraSelect.value;
+  const curLens = lensSelect.value;
+  cameraSelect.innerHTML = '';
+  lensSelect.innerHTML = '';
+  fillSelect(cameraSelect, camList, '无机身');
+  fillSelect(lensSelect, lensList, '不装镜头');
+  if (camList.some((c) => c.id === curCam)) cameraSelect.value = curCam;
+  if (lensList.some((l) => l.id === curLens)) lensSelect.value = curLens;
+}
+
+brandSelect.addEventListener('change', () => {
+  const b = brandSelect.value;
+  if (!b) {
+    refillGearSelects(''); // 全部品牌：仅解除过滤，不动当前组合
+  } else {
+    // 当前机身不属于该品牌时，切到该品牌套机（首个机身 + 首支兼容镜头）
+    const cam = cameras.find((c) => c.brand === b);
+    if (cam && (!cameraInst || cameraInst.gear.brand !== b)) {
+      const lens = lenses.find((l) => l.brand === b && isCompatible(cam, l));
+      refillGearSelects(b);
+      cameraSelect.value = cam.id;
+      lensSelect.value = lens ? lens.id : '';
+      rebuild(cam.id, lensSelect.value);
+    } else {
+      refillGearSelects(b);
+    }
+  }
+  refreshLensCompatibility();
+});
 
 // 按当前机身禁用卡口不兼容的镜头选项
 function refreshLensCompatibility() {
@@ -472,8 +512,8 @@ function animate() {
 }
 
 // ---------- 初始组合 ----------
-fillSelect(cameraSelect, cameras, '无机身');
-fillSelect(lensSelect, lenses, '不装镜头');
+fillBrandSelect();
+refillGearSelects('');
 cameraSelect.value = DEFAULT_CAMERA;
 lensSelect.value = DEFAULT_LENS;
 rebuild(DEFAULT_CAMERA, DEFAULT_LENS);

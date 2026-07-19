@@ -272,7 +272,8 @@ export function buildBody(spec) {
   const sx = w / REF_W, sy = h / REF_H, sz = d / REF_D; // 逐轴缩放
   const hh = h / 2, hd = d / 2;
   const sr = Math.sqrt((sx + sy) / 2);                  // 卡口/传感器系缩放（随 dims 但缓和）
-  const sk = spec.sensorFormat === 'dx' ? 2 / 3 : 1;    // APS-C 传感器缩小系数
+  const sk = spec.sensorFormat === 'dx' ? 2 / 3      // APS-C 传感器缩小系数
+    : spec.sensorFormat === 'mf' ? 1.25 : 1;         // 中画幅传感器放大系数
   const L = { ...DEFAULT_LABELS, ...(spec.labels || {}) };
   const ctx = {
     w, h, d, sx, sy, sz, sr, sk, hh, hd, LENS_Y, L,

@@ -1,12 +1,12 @@
 # Alarkit · 相机 3D 拆解台
 
-一个以 3D 视角拆解、讲解相机的教学向 Web 应用。内置 **6 款 Nikon Z 系统机身**（Z6 III / Z7 II / Z5 II / Z8 / Z9 / Z50 II）与 **8 支 NIKKOR Z 镜头**（24-120 f/4 S、85 f/1.8 S、14-24 / 24-70 / 70-200 f/2.8 S、35 / 50 f/1.8 S、DX 18-140），机身与镜头可自由组合，也可以一键"爆炸"成零件，点击任意元件了解它的用途、背后的摄影原理与实战技巧。
+一个以 3D 视角拆解、讲解相机的教学向 Web 应用。覆盖 **7 个品牌、12 款机身、14 支镜头**：Nikon（Z6 III / Z7 II / Z5 II / Z8 / Z9 / Z50 II + 8 支 Z 镜头）、Sony（A7C II + 35GM）、Fujifilm（X-T5 + XF 35）、Canon（EOS R5 + RF 50L）、Leica（M11 + Summilux 35）、Hasselblad（X2D + XCD 55）、Lumix（S5 II + 24-105）。机身与镜头可自由组合（卡口自动判断兼容），也可以一键"爆炸"成零件，点击任意元件了解它的用途、背后的摄影原理与实战技巧。
 
 > 模型为 Three.js 几何体程序化拼装的教学示意图，非精确比例复刻。
 
 ## 功能特性
 
-- **器材切换**：机身与镜头独立下拉选择、自由组合（含仅机身/仅镜头），按卡口自动判断兼容性，切换不刷新页面
+- **器材切换**：品牌筛选 + 机身与镜头独立下拉选择、自由组合（含仅机身/仅镜头），按卡口自动判断兼容性，切换不刷新页面
 - **背景主题**：深色 / 亮色（影棚渐变）/ 工作台（程序化木纹台面）三种视口背景，选择本地记忆
 - **组合 ⇄ 拆解**：滑块无级控制 + 一键动画，35 个元件沿各自方向展开（机身向后分层、镜头沿光轴向前）
 - **元件点选**：点击 3D 模型或左侧元件树，元件高亮（尼康黄）并自动聚焦视角
@@ -30,14 +30,18 @@ Alarkit/
 │       ├── registry.js       # 器材注册表：cameras/lenses、卡口兼容判断、装配与元件 id 命名空间化
 │       ├── data.js           # 全部文案：元件介绍与器材简介
 │       └── models/
-│           ├── materials.js    # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
-│           ├── body.js         # Nikon Z6 III 机身（手写精模，15 个可拆元件）
-│           ├── bodyFactory.js  # 参数化机身工厂 buildBody(spec)
-│           ├── bodyZ*.js       # Z7 II / Z5 II / Z8 / Z9 / Z50 II（参数表 + gear 描述符）
-│           ├── lensZoom.js     # Nikkor Z 24-120mm f/4 S（手写精模）
-│           ├── lensPrime.js    # Nikkor Z 85mm f/1.8 S（手写精模）
-│           ├── lensFactory.js  # 参数化镜头工厂 buildLens(spec)
-│           └── lens*.js        # 24-70 / 70-200 / 14-24 f/2.8 S、35 / 50 f/1.8 S、DX 18-140
+│           ├── materials.js        # 共享材质 + 建模工具（mesh/box/cyl/mkPart/disposeTree）
+│           ├── body.js             # Nikon Z6 III 机身（手写精模，15 个可拆元件）
+│           ├── bodyFactory.js      # 参数化机身工厂 buildBody(spec)，支持 overrides 精修
+│           ├── bodyZ*.js           # Nikon Z7 II / Z5 II / Z8 / Z9 / Z50 II
+│           ├── body{Sony,Fuji,Canon,Leica,Hasselblad,Lumix}*.js  # 其余 6 品牌机身
+│           ├── lensZoom.js         # Nikkor Z 24-120mm f/4 S（手写精模）
+│           ├── lensPrime.js        # Nikkor Z 85mm f/1.8 S（手写精模）
+│           ├── lensFactory.js      # 参数化镜头工厂 buildLens(spec)，支持 labels/overrides
+│           ├── lens*.js            # 8 支 Nikkor 镜头
+│           ├── lens{Sony,Fuji,Canon,Leica,Hasselblad,Lumix}*.js  # 其余 6 品牌镜头
+│           ├── refinedParts.js     # 共享精修件库（机身）
+│           └── refinedLensParts.js # 共享精修件库（镜头）
 └── tools/
     ├── smoke.mjs             # Node 冒烟测试：遍历注册表，校验器材/元件/文案/装配与兼容性
     ├── shoot.py              # Playwright 截图 + 控制台抓取（调试）

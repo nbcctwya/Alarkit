@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  cameras, lenses, findGear, createGear, assemble, isCompatible,
+  cameras, lenses, brands, findGear, createGear, assemble, isCompatible,
   DEFAULT_CAMERA, DEFAULT_LENS,
 } from '../static/js/registry.js';
 import { PART_INFO, GEAR_INFO } from '../static/js/data.js';
@@ -31,6 +31,14 @@ for (const g of allGear) {
   else if (!gi.name || !gi.sub || !gi.desc) bad(`GEAR_INFO incomplete ${g.id}`);
 }
 ok(`${allGear.length} gears registered (${cameras.length} cameras, ${lenses.length} lenses)`);
+
+// ---------- 1.5 品牌覆盖：每个品牌至少 1 机身 1 镜头 ----------
+if (!Array.isArray(brands) || !brands.length) bad('brands list empty');
+for (const b of brands) {
+  if (!cameras.some((c) => c.brand === b)) bad(`brand ${b} has no camera`);
+  if (!lenses.some((l) => l.brand === b)) bad(`brand ${b} has no lens`);
+}
+ok(`${brands.length} brands: ${brands.join(' / ')}`);
 
 // ---------- 2-6. create 返回格式 / 元件 id / 文案 / 拆解参数 / 包围盒 ----------
 const partIds = new Set();
@@ -109,11 +117,28 @@ else ok('lensFactory overrides mechanism');
 // ---------- 7. 卡口兼容逻辑 ----------
 const z6 = findGear(DEFAULT_CAMERA);
 for (const lens of lenses) {
+  if (lens.mount !== z6.mount) { // 其他卡口：必须不兼容
+    if (isCompatible(z6, lens)) bad(`${z6.id} should NOT be compatible with ${lens.id}`);
+    continue;
+  }
   if (!isCompatible(z6, lens)) bad(`${z6.id} should be compatible with ${lens.id}`);
   else ok(`${z6.id} × ${lens.id} compatible (${lens.mount})`);
 }
 if (isCompatible(z6, { mount: 'other-mount' })) bad('fake incompatible lens judged compatible');
 if (isCompatible(z6, null) || isCompatible(null, lenses[0])) bad('null gear judged compatible');
+// 跨品牌卡口互斥：不同品牌的卡口不同，组合必须不兼容
+const crossPairs = [
+  ['sony-a7c2', 'nikkor-z-24-120-f4s'],
+  ['nikon-z6-iii', 'sony-fe-35-f14gm'],
+  ['canon-eos-r5', 'fujifilm-xf-35-f14'],
+  ['leica-m11', 'lumix-s-24-105-f4'],
+];
+for (const [cid, lid] of crossPairs) {
+  const c = findGear(cid), l = findGear(lid);
+  if (!c || !l) { bad(`cross-brand pair missing: ${cid} / ${lid}`); continue; }
+  if (isCompatible(c, l)) bad(`cross-brand ${cid} × ${lid} should NOT be compatible`);
+}
+ok(`cross-brand mounts mutually exclusive (${crossPairs.length} pairs)`);
 
 // ---------- 8/9. 组合装配与活动元件数 ----------
 const combos = [
@@ -121,6 +146,12 @@ const combos = [
   [DEFAULT_CAMERA, 'nikkor-z-85-f18s', 24],
   ['nikon-z9', 'nikkor-z-70-200-f28s', 30],
   ['nikon-z50-ii', 'nikkor-z-dx-18-140', 27],
+  ['sony-a7c2', 'sony-fe-35-f14gm', 24],
+  ['fujifilm-x-t5', 'fujifilm-xf-35-f14', 24],
+  ['canon-eos-r5', 'canon-rf-50-f12l', 24],
+  ['leica-m11', 'leica-summilux-m-35-f14', 23],
+  ['hasselblad-x2d', 'hasselblad-xcd-55-f25v', 24],
+  ['lumix-s5-ii', 'lumix-s-24-105-f4', 27],
 ];
 for (const [c, l, expect] of combos) {
   const a = assemble(c, l);
